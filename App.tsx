@@ -1,7 +1,14 @@
 import { StatusBar } from "expo-status-bar";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import "core-js/fn/symbol/iterator";
 import { StyleSheet, Text, View, TouchableOpacity } from "react-native";
+import Animated, {
+  useSharedValue,
+  useAnimatedStyle,
+  withTiming,
+  withSpring,
+  withRepeat,
+} from "react-native-reanimated";
 
 interface Option {
   name: string;
@@ -28,9 +35,17 @@ export default function App(): JSX.Element {
   const [result, setResult] = useState<string>("Pick!");
   const [playerScore, setPlayerScore] = useState<number>(0);
   const [comScore, setComScore] = useState<number>(0);
+  const [shaking, setShaking] = useState<boolean>(false);
+
+  const opacity: Animated.SharedValue<number> = useSharedValue(0);
+  const scale: Animated.SharedValue<number> = useSharedValue(5);
+  const translate: Animated.SharedValue<number> = useSharedValue(0);
 
   const winnerDeterminer = (comPick: Option, playerPick: Option): string => {
+    translate.value = withRepeat(withTiming(20), 4, true);
+
     if (comPick.beat === playerPick.name && comPick.name !== playerPick.name) {
+      //translate.value = withTiming(0, { duration: 1000 });
       setComScore(comScore + 1);
       setResult(`${playerPick.name} lose against ${comPick.name}`);
       return "com";
@@ -42,6 +57,7 @@ export default function App(): JSX.Element {
       setResult(`${playerPick.name} win against ${comPick.name}`);
       return "player";
     } else {
+      //translate.value = withTiming(0, { duration: 1000 });
       setResult("Tie");
       return "tie";
     }
@@ -63,6 +79,26 @@ export default function App(): JSX.Element {
     setSummary(newHistory);
   };
 
+  const ChoiceAnimations = useAnimatedStyle(() => {
+    return {
+      opacity: opacity.value,
+      transform: [{ scale: scale.value }],
+    };
+  }, []);
+
+  const ResultAnimations = useAnimatedStyle(() => {
+    return {
+      opacity: opacity.value,
+      transform: [{ translateY: translate.value }],
+    };
+  }, []);
+
+  useEffect(() => {
+    opacity.value = withTiming(1, { duration: 1000 });
+    scale.value = withSpring(1);
+    translate.value = 0;
+  }, []);
+
   return (
     <View style={styles.container}>
       <View style={styles.resultContainer}>
@@ -76,21 +112,25 @@ export default function App(): JSX.Element {
       </View>
 
       <View style={styles.summaryContainer}>
-        {summary ? (
-          <View style={styles.summaryEmojiContainer}>
-            <View style={styles.summaryEmojiItem}>
-              <Text style={styles.summaryEmojiText}>{summary.playerEmoji}</Text>
+        <Animated.View style={[ResultAnimations]}>
+          {summary ? (
+            <View style={styles.summaryEmojiContainer}>
+              <View style={styles.summaryEmojiItem}>
+                <Text style={styles.summaryEmojiText}>
+                  {summary.playerEmoji}
+                </Text>
+              </View>
+              <View style={styles.summaryEmojiItem}>
+                <Text style={styles.summaryEmojiText}>{summary.comEmoji}</Text>
+              </View>
             </View>
-            <View style={styles.summaryEmojiItem}>
-              <Text style={styles.summaryEmojiText}>{summary.comEmoji}</Text>
-            </View>
-          </View>
-        ) : null}
+          ) : null}
+        </Animated.View>
       </View>
 
       <Text>{result}</Text>
 
-      <View style={styles.choicesContainer}>
+      <Animated.View style={[styles.choicesContainer, ChoiceAnimations]}>
         <TouchableOpacity
           style={styles.choiceContainer}
           onPress={() => pickHandler(0)}
@@ -109,7 +149,7 @@ export default function App(): JSX.Element {
         >
           <Text style={styles.optionText}>✌🏼</Text>
         </TouchableOpacity>
-      </View>
+      </Animated.View>
 
       <StatusBar style="auto" />
     </View>
@@ -149,5 +189,6 @@ const styles = StyleSheet.create({
   },
   summaryEmojiText: {
     fontSize: 50,
+    opacity: 1,
   },
 });
