@@ -42,25 +42,34 @@ export default function App(): JSX.Element {
   const translate: Animated.SharedValue<number> = useSharedValue(0);
 
   const winnerDeterminer = (comPick: Option, playerPick: Option): string => {
+    setShaking(true);
     translate.value = withRepeat(withTiming(20), 4, true);
-
-    if (comPick.beat === playerPick.name && comPick.name !== playerPick.name) {
-      //translate.value = withTiming(0, { duration: 1000 });
-      setComScore(comScore + 1);
-      setResult(`${playerPick.name} lose against ${comPick.name}`);
-      return "com";
-    } else if (
-      comPick.beat !== playerPick.name &&
-      comPick.name !== playerPick.name
-    ) {
-      setPlayerScore(playerScore + 1);
-      setResult(`${playerPick.name} win against ${comPick.name}`);
-      return "player";
-    } else {
-      //translate.value = withTiming(0, { duration: 1000 });
-      setResult("Tie");
-      return "tie";
-    }
+    setTimeout(() => {
+      if (
+        comPick.beat === playerPick.name &&
+        comPick.name !== playerPick.name
+      ) {
+        //translate.value = withTiming(0, { duration: 1000 });
+        setComScore(comScore + 1);
+        setResult(`${playerPick.name} lose against ${comPick.name}`);
+        setShaking(false);
+        return "com";
+      } else if (
+        comPick.beat !== playerPick.name &&
+        comPick.name !== playerPick.name
+      ) {
+        setPlayerScore(playerScore + 1);
+        setResult(`${playerPick.name} win against ${comPick.name}`);
+        setShaking(false);
+        return "player";
+      } else {
+        //translate.value = withTiming(0, { duration: 1000 });
+        setResult("Tie");
+        setShaking(false);
+        return "tie";
+      }
+    }, 1000);
+    return;
   };
 
   const pickHandler = (playerNum: number): void => {
@@ -113,7 +122,9 @@ export default function App(): JSX.Element {
 
       <View style={styles.summaryContainer}>
         <Animated.View style={[ResultAnimations]}>
-          {summary ? (
+          {shaking ? (
+            <Text style={styles.summaryEmojiText}>🤜🏻🤛🏻</Text>
+          ) : summary ? (
             <View style={styles.summaryEmojiContainer}>
               <View style={styles.summaryEmojiItem}>
                 <Text style={styles.summaryEmojiText}>
@@ -128,26 +139,38 @@ export default function App(): JSX.Element {
         </Animated.View>
       </View>
 
-      <Text>{result}</Text>
+      <Text>{shaking ? "Shaking.." : result}</Text>
 
-      <Animated.View style={[styles.choicesContainer, ChoiceAnimations]}>
+      <Animated.View
+        style={[
+          styles.choicesContainer,
+          { opacity: shaking ? 0.5 : 1 },
+          ChoiceAnimations,
+        ]}
+      >
         <TouchableOpacity
           style={styles.choiceContainer}
-          onPress={() => pickHandler(0)}
+          onPress={shaking ? null : () => pickHandler(0)}
         >
-          <Text style={styles.optionText}>✊🏼</Text>
+          <Text style={[styles.optionText, { opacity: shaking ? 0.5 : 1 }]}>
+            ✊🏼
+          </Text>
         </TouchableOpacity>
         <TouchableOpacity
           style={styles.choiceContainer}
-          onPress={() => pickHandler(1)}
+          onPress={shaking ? null : () => pickHandler(1)}
         >
-          <Text style={styles.optionText}>🖐🏼</Text>
+          <Text style={[styles.optionText, { opacity: shaking ? 0.5 : 1 }]}>
+            🖐🏼
+          </Text>
         </TouchableOpacity>
         <TouchableOpacity
           style={styles.choiceContainer}
-          onPress={() => pickHandler(2)}
+          onPress={shaking ? null : () => pickHandler(2)}
         >
-          <Text style={styles.optionText}>✌🏼</Text>
+          <Text style={[styles.optionText, { opacity: shaking ? 0.5 : 1 }]}>
+            ✌🏼
+          </Text>
         </TouchableOpacity>
       </Animated.View>
 
