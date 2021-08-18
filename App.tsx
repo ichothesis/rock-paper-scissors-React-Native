@@ -8,6 +8,7 @@ import Animated, {
   withTiming,
   withSpring,
   withRepeat,
+  Easing,
 } from "react-native-reanimated";
 
 interface Option {
@@ -42,13 +43,20 @@ export default function App(): JSX.Element {
   const scale: Animated.SharedValue<number> = useSharedValue(5);
   const translate: Animated.SharedValue<number> = useSharedValue(0);
   const textScale: Animated.SharedValue<number> = useSharedValue(1);
-  //const textScale2: Animated.SharedValue<number> = useSharedValue(1);
+  const emojiChoicesScale: Animated.SharedValue<number> = useSharedValue(1);
 
   const winnerDeterminer = (comPick: Option, playerPick: Option): string => {
     setShaking(true);
     translate.value = withRepeat(withTiming(20), 4, true);
+    emojiChoicesScale.value = withRepeat(
+      withTiming(0.9, {
+        duration: 100,
+      }),
+      2,
+      true
+    );
     setTimeout(() => {
-      textScale.value = withRepeat(withSpring(1.7), 2, true);
+      let result: string;
       if (
         comPick.beat === playerPick.name &&
         comPick.name !== playerPick.name
@@ -58,7 +66,7 @@ export default function App(): JSX.Element {
         setColorText("#e66767");
         setResult(`You Lose`);
         setShaking(false);
-        return "com";
+        result = "com";
       } else if (
         comPick.beat !== playerPick.name &&
         comPick.name !== playerPick.name
@@ -67,16 +75,18 @@ export default function App(): JSX.Element {
         setColorText("#fada70");
         setResult(`You Win!`);
         setShaking(false);
-        return "player";
+        result = "player";
       } else {
         //translate.value = withTiming(0, { duration: 1000 });
         setResult("Tie");
         setColorText("white");
         setShaking(false);
-        return "tie";
+        result = "tie";
       }
-    }, 1000);
-    return;
+      textScale.value = withRepeat(withTiming(1.4, { duration: 150 }), 2, true);
+    }, 1200);
+
+    return result;
   };
 
   const pickHandler = (playerNum: number): void => {
@@ -104,7 +114,6 @@ export default function App(): JSX.Element {
 
   const ResultAnimations = useAnimatedStyle(() => {
     return {
-      //opacity: opacity.value,
       transform: [{ translateY: translate.value }],
     };
   }, []);
@@ -112,6 +121,12 @@ export default function App(): JSX.Element {
   const ResultTextAnimations = useAnimatedStyle(() => {
     return {
       transform: [{ scale: textScale.value }],
+    };
+  }, []);
+
+  const EmojiContainerAnimations = useAnimatedStyle(() => {
+    return {
+      transform: [{ scale: emojiChoicesScale.value }],
     };
   }, []);
 
@@ -166,7 +181,13 @@ export default function App(): JSX.Element {
           </Text>
         </Animated.View>
 
-        <View style={[styles.choicesContainer, { opacity: shaking ? 0.5 : 1 }]}>
+        <Animated.View
+          style={[
+            styles.choicesContainer,
+            { opacity: shaking ? 0.5 : 1 },
+            EmojiContainerAnimations,
+          ]}
+        >
           <TouchableOpacity
             style={styles.choiceContainer}
             onPress={shaking ? null : () => pickHandler(0)}
@@ -191,7 +212,7 @@ export default function App(): JSX.Element {
               ✌🏼
             </Text>
           </TouchableOpacity>
-        </View>
+        </Animated.View>
 
         <StatusBar style="auto" />
       </Animated.View>
