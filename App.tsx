@@ -36,22 +36,26 @@ export default function App(): JSX.Element {
   const [playerScore, setPlayerScore] = useState<number>(0);
   const [comScore, setComScore] = useState<number>(0);
   const [shaking, setShaking] = useState<boolean>(false);
+  const [colorText, setColorText] = useState<string>("white");
 
   const opacity: Animated.SharedValue<number> = useSharedValue(0);
   const scale: Animated.SharedValue<number> = useSharedValue(5);
   const translate: Animated.SharedValue<number> = useSharedValue(0);
+  const textScale: Animated.SharedValue<number> = useSharedValue(1);
 
   const winnerDeterminer = (comPick: Option, playerPick: Option): string => {
     setShaking(true);
     translate.value = withRepeat(withTiming(20), 4, true);
     setTimeout(() => {
+      textScale.value = withRepeat(withSpring(1.7), 2, true);
       if (
         comPick.beat === playerPick.name &&
         comPick.name !== playerPick.name
       ) {
         //translate.value = withTiming(0, { duration: 1000 });
         setComScore(comScore + 1);
-        setResult(`${playerPick.name} lose against ${comPick.name}`);
+        setColorText("#e66767");
+        setResult(`You Lose`);
         setShaking(false);
         return "com";
       } else if (
@@ -59,12 +63,14 @@ export default function App(): JSX.Element {
         comPick.name !== playerPick.name
       ) {
         setPlayerScore(playerScore + 1);
-        setResult(`${playerPick.name} win against ${comPick.name}`);
+        setColorText("#fada70");
+        setResult(`You Win!`);
         setShaking(false);
         return "player";
       } else {
         //translate.value = withTiming(0, { duration: 1000 });
         setResult("Tie");
+        setColorText("white");
         setShaking(false);
         return "tie";
       }
@@ -102,6 +108,12 @@ export default function App(): JSX.Element {
     };
   }, []);
 
+  const ResultTextAnimations = useAnimatedStyle(() => {
+    return {
+      transform: [{ scale: textScale.value }],
+    };
+  }, []);
+
   useEffect(() => {
     opacity.value = withTiming(1, { duration: 1000 });
     scale.value = withSpring(1);
@@ -112,11 +124,11 @@ export default function App(): JSX.Element {
     <View style={styles.container}>
       <View style={styles.resultContainer}>
         <View style={styles.resultItem}>
-          <Text>You: {playerScore}</Text>
+          <Text style={styles.scoreText}>YOU: {playerScore}</Text>
         </View>
 
         <View style={styles.resultItem}>
-          <Text>Com: {comScore}</Text>
+          <Text style={styles.scoreText}>COM: {comScore}</Text>
         </View>
       </View>
 
@@ -139,7 +151,13 @@ export default function App(): JSX.Element {
         </Animated.View>
       </View>
 
-      <Text>{shaking ? "Shaking.." : result}</Text>
+      <Animated.View style={ResultTextAnimations}>
+        <Text
+          style={[styles.resultText, { color: shaking ? "white" : colorText }]}
+        >
+          {shaking ? "Shaking.." : result}
+        </Text>
+      </Animated.View>
 
       <Animated.View
         style={[
@@ -182,12 +200,17 @@ export default function App(): JSX.Element {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#fff",
+    backgroundColor: "#203b63",
     alignItems: "center",
     justifyContent: "center",
   },
   choicesContainer: {
     flexDirection: "row",
+    borderWidth: 2,
+    borderColor: "gray",
+    padding: 5,
+    borderRadius: 15,
+    paddingHorizontal: 15,
   },
   choiceContainer: {
     marginHorizontal: 10,
@@ -197,12 +220,14 @@ const styles = StyleSheet.create({
   },
   resultContainer: {
     flexDirection: "row",
+    marginBottom: 25,
   },
   resultItem: {
     marginHorizontal: 15,
   },
   summaryContainer: {
     //width: "100%",
+    marginBottom: 15,
   },
   summaryEmojiContainer: {
     flexDirection: "row",
@@ -213,5 +238,16 @@ const styles = StyleSheet.create({
   summaryEmojiText: {
     fontSize: 50,
     opacity: 1,
+  },
+  scoreText: {
+    color: "white",
+    fontWeight: "700",
+    fontSize: 16,
+    opacity: 0.9,
+  },
+  resultText: {
+    fontWeight: "500",
+    marginBottom: 25,
+    fontSize: 16,
   },
 });
