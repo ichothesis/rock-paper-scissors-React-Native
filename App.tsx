@@ -42,6 +42,7 @@ export default function App(): JSX.Element {
   const scale: Animated.SharedValue<number> = useSharedValue(5);
   const translate: Animated.SharedValue<number> = useSharedValue(0);
   const textScale: Animated.SharedValue<number> = useSharedValue(1);
+  //const textScale2: Animated.SharedValue<number> = useSharedValue(1);
 
   const winnerDeterminer = (comPick: Option, playerPick: Option): string => {
     setShaking(true);
@@ -94,7 +95,7 @@ export default function App(): JSX.Element {
     setSummary(newHistory);
   };
 
-  const ChoiceAnimations = useAnimatedStyle(() => {
+  const ContainerAnimations = useAnimatedStyle(() => {
     return {
       opacity: opacity.value,
       transform: [{ scale: scale.value }],
@@ -103,7 +104,7 @@ export default function App(): JSX.Element {
 
   const ResultAnimations = useAnimatedStyle(() => {
     return {
-      opacity: opacity.value,
+      //opacity: opacity.value,
       transform: [{ translateY: translate.value }],
     };
   }, []);
@@ -122,77 +123,78 @@ export default function App(): JSX.Element {
 
   return (
     <View style={styles.container}>
-      <View style={styles.resultContainer}>
-        <View style={styles.resultItem}>
-          <Text style={styles.scoreText}>YOU: {playerScore}</Text>
+      <Animated.View style={[styles.container, ContainerAnimations]}>
+        <View style={styles.resultContainer}>
+          <View style={styles.resultItem}>
+            <Text style={styles.scoreText}>YOU: {playerScore}</Text>
+          </View>
+
+          <View style={styles.resultItem}>
+            <Text style={styles.scoreText}>COM: {comScore}</Text>
+          </View>
         </View>
 
-        <View style={styles.resultItem}>
-          <Text style={styles.scoreText}>COM: {comScore}</Text>
+        <View style={styles.summaryContainer}>
+          <Animated.View style={[ResultAnimations]}>
+            {shaking ? (
+              <Text style={styles.summaryEmojiText}>🤜🏻🤛🏻</Text>
+            ) : summary ? (
+              <View style={styles.summaryEmojiContainer}>
+                <View style={styles.summaryEmojiItem}>
+                  <Text style={styles.summaryEmojiText}>
+                    {summary.playerEmoji}
+                  </Text>
+                </View>
+                <View style={styles.summaryEmojiItem}>
+                  <Text style={styles.summaryEmojiText}>
+                    {summary.comEmoji}
+                  </Text>
+                </View>
+              </View>
+            ) : null}
+          </Animated.View>
         </View>
-      </View>
 
-      <View style={styles.summaryContainer}>
-        <Animated.View style={[ResultAnimations]}>
-          {shaking ? (
-            <Text style={styles.summaryEmojiText}>🤜🏻🤛🏻</Text>
-          ) : summary ? (
-            <View style={styles.summaryEmojiContainer}>
-              <View style={styles.summaryEmojiItem}>
-                <Text style={styles.summaryEmojiText}>
-                  {summary.playerEmoji}
-                </Text>
-              </View>
-              <View style={styles.summaryEmojiItem}>
-                <Text style={styles.summaryEmojiText}>{summary.comEmoji}</Text>
-              </View>
-            </View>
-          ) : null}
+        <Animated.View style={ResultTextAnimations}>
+          <Text
+            style={[
+              styles.resultText,
+              { color: shaking ? "white" : colorText },
+            ]}
+          >
+            {shaking ? "Shaking.." : result}
+          </Text>
         </Animated.View>
-      </View>
 
-      <Animated.View style={ResultTextAnimations}>
-        <Text
-          style={[styles.resultText, { color: shaking ? "white" : colorText }]}
-        >
-          {shaking ? "Shaking.." : result}
-        </Text>
+        <View style={[styles.choicesContainer, { opacity: shaking ? 0.5 : 1 }]}>
+          <TouchableOpacity
+            style={styles.choiceContainer}
+            onPress={shaking ? null : () => pickHandler(0)}
+          >
+            <Text style={[styles.optionText, { opacity: shaking ? 0.5 : 1 }]}>
+              ✊🏼
+            </Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.choiceContainer}
+            onPress={shaking ? null : () => pickHandler(1)}
+          >
+            <Text style={[styles.optionText, { opacity: shaking ? 0.5 : 1 }]}>
+              🖐🏼
+            </Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.choiceContainer}
+            onPress={shaking ? null : () => pickHandler(2)}
+          >
+            <Text style={[styles.optionText, { opacity: shaking ? 0.5 : 1 }]}>
+              ✌🏼
+            </Text>
+          </TouchableOpacity>
+        </View>
+
+        <StatusBar style="auto" />
       </Animated.View>
-
-      <Animated.View
-        style={[
-          styles.choicesContainer,
-          { opacity: shaking ? 0.5 : 1 },
-          ChoiceAnimations,
-        ]}
-      >
-        <TouchableOpacity
-          style={styles.choiceContainer}
-          onPress={shaking ? null : () => pickHandler(0)}
-        >
-          <Text style={[styles.optionText, { opacity: shaking ? 0.5 : 1 }]}>
-            ✊🏼
-          </Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={styles.choiceContainer}
-          onPress={shaking ? null : () => pickHandler(1)}
-        >
-          <Text style={[styles.optionText, { opacity: shaking ? 0.5 : 1 }]}>
-            🖐🏼
-          </Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={styles.choiceContainer}
-          onPress={shaking ? null : () => pickHandler(2)}
-        >
-          <Text style={[styles.optionText, { opacity: shaking ? 0.5 : 1 }]}>
-            ✌🏼
-          </Text>
-        </TouchableOpacity>
-      </Animated.View>
-
-      <StatusBar style="auto" />
     </View>
   );
 }
